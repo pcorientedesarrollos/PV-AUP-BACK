@@ -1040,28 +1040,32 @@ export class PosService {
       await queryRunner.manager.save(movimiento);
 
       // Calcular el nuevo costo promedio ponderado automáticamente
-      if (payload.costoUnitario !== undefined && payload.costoUnitario !== null) {
+      const doUpdate = payload.actualizarCosto !== false;
+      if (doUpdate && payload.costoUnitario !== undefined && payload.costoUnitario !== null) {
         const stockPrevio = Number(producto.stockActual);
         const costoPrevio = Number(producto.precioCompra) || 0;
+        const costoEntrante = Number(payload.costoUnitario);
         
-        producto.precioCompra = calcularCostoPromedioPonderado(
-          stockPrevio, 
-          costoPrevio, 
-          cantidadNumber, 
-          Number(payload.costoUnitario)
-        );
+        if (stockPrevio <= 0 || costoEntrante > costoPrevio) {
+          producto.precioCompra = calcularCostoPromedioPonderado(
+            stockPrevio, 
+            costoPrevio, 
+            cantidadNumber, 
+            costoEntrante
+          );
 
-        // Recalcular precios de venta manteniendo el % de utilidad
-        const utilidad = Number(producto.utilidad) || 0;
-        const precioPublico = producto.precioCompra * (1 + (utilidad / 100));
-        producto.precioUnitario = precioPublico;
-        producto.precioPublico = precioPublico;
-        
-        const aplicaIva = producto.aplicaIva ?? false;
-        const ivaRate = Number(producto.iva) || 0;
-        const baseIva = precioPublico - (Number(producto.descuento) || 0);
-        const ivaCalc = aplicaIva ? (baseIva * (ivaRate / 100)) : 0;
-        producto.precioVenta = baseIva + ivaCalc;
+          // Recalcular precios de venta manteniendo el % de utilidad
+          const utilidad = Number(producto.utilidad) || 0;
+          const precioPublico = producto.precioCompra * (1 + (utilidad / 100));
+          producto.precioUnitario = precioPublico;
+          producto.precioPublico = precioPublico;
+          
+          const aplicaIva = producto.aplicaIva ?? false;
+          const ivaRate = Number(producto.iva) || 0;
+          const baseIva = precioPublico - (Number(producto.descuento) || 0);
+          const ivaCalc = aplicaIva ? (baseIva * (ivaRate / 100)) : 0;
+          producto.precioVenta = baseIva + ivaCalc;
+        }
       }
 
       // Actualizar el stock
@@ -2414,28 +2418,32 @@ export class PosService {
         // Sumar stock al producto
         const pCompra = await queryRunner.manager.findOne(PosProducto, { where: { idProducto: item.idProducto } });
         if (pCompra) {
-          if (item.precioCosto !== undefined && item.precioCosto !== null) {
+          const doUpdate = item.actualizarCosto !== false;
+          if (doUpdate && item.precioCosto !== undefined && item.precioCosto !== null) {
               const stockPrevio = Number(pCompra.stockActual);
               const costoPrevio = Number(pCompra.precioCompra) || 0;
               const cantidadEntrante = Number(item.cantidad);
+              const costoEntrante = Number(item.precioCosto);
 
-              pCompra.precioCompra = calcularCostoPromedioPonderado(
-                stockPrevio,
-                costoPrevio,
-                cantidadEntrante,
-                Number(item.precioCosto)
-              );
+              if (stockPrevio <= 0 || costoEntrante > costoPrevio) {
+                pCompra.precioCompra = calcularCostoPromedioPonderado(
+                  stockPrevio,
+                  costoPrevio,
+                  cantidadEntrante,
+                  costoEntrante
+                );
 
-              const utilidad = Number(pCompra.utilidad) || 0;
-              const precioPublico = pCompra.precioCompra * (1 + (utilidad / 100));
-              pCompra.precioUnitario = precioPublico;
-              pCompra.precioPublico = precioPublico;
-              
-              const aplicaIva = pCompra.aplicaIva ?? false;
-              const ivaRate = Number(pCompra.iva) || 0;
-              const baseIva = precioPublico - (Number(pCompra.descuento) || 0);
-              const ivaCalc = aplicaIva ? (baseIva * (ivaRate / 100)) : 0;
-              pCompra.precioVenta = baseIva + ivaCalc;
+                const utilidad = Number(pCompra.utilidad) || 0;
+                const precioPublico = pCompra.precioCompra * (1 + (utilidad / 100));
+                pCompra.precioUnitario = precioPublico;
+                pCompra.precioPublico = precioPublico;
+                
+                const aplicaIva = pCompra.aplicaIva ?? false;
+                const ivaRate = Number(pCompra.iva) || 0;
+                const baseIva = precioPublico - (Number(pCompra.descuento) || 0);
+                const ivaCalc = aplicaIva ? (baseIva * (ivaRate / 100)) : 0;
+                pCompra.precioVenta = baseIva + ivaCalc;
+              }
             }
           
           pCompra.stockActual = Number(pCompra.stockActual) + Number(item.cantidad);
