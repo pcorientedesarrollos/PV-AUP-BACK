@@ -407,15 +407,20 @@ export class PosService {
 
     if (categorias.length === 0) return [];
 
-    const categoriaIds = categorias.map(c => c.idCategoria);
-    const counts = await this.productoRepo.createQueryBuilder('producto')
-      .select('categoria.idCategoria', 'idCategoria')
-      .addSelect('COUNT(producto.idProducto)', 'total')
-      .innerJoin('producto.categoria', 'categoria')
-      .where('categoria.idCategoria IN (:...categoriaIds)', { categoriaIds })
-      .andWhere('producto.activo = :activo', { activo: true })
-      .groupBy('categoria.idCategoria')
-      .getRawMany();
+      const categoriaIds = categorias.map(c => c.idCategoria);
+      let countsQuery = this.productoRepo.createQueryBuilder('producto')
+        .select('categoria.idCategoria', 'idCategoria')
+        .addSelect('COUNT(producto.idProducto)', 'total')
+        .innerJoin('producto.categoria', 'categoria')
+        .where('categoria.idCategoria IN (:...categoriaIds)', { categoriaIds })
+        .andWhere('producto.activo = :activo', { activo: true });
+        
+      if (idSucursal) {
+        countsQuery = countsQuery.andWhere('producto.id_sucursal = :idSucursal', { idSucursal });
+      }
+      
+      countsQuery = countsQuery.groupBy('categoria.idCategoria');
+      const counts = await countsQuery.getRawMany();
 
     const countMap = new Map<number, number>();
     counts.forEach(c => countMap.set(c.idCategoria, Number(c.total)));
