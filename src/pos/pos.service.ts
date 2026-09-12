@@ -488,12 +488,14 @@ export class PosService {
   }
 
   async eliminarCliente(id: number, idSucursal?: number, rol?: string) {
+    const cliente = await this.clienteRepo.findOne({ where: { idCliente: id }, relations: { sucursal: true } });
+    if (!cliente) throw new BadRequestException('Cliente no encontrado');
+    
     if (idSucursal && rol !== 'Administrador' && rol !== 'Soporte') {
-      const cliente = await this.clienteRepo.findOne({ where: { idCliente: id }, relations: { sucursal: true } });
-      if (!cliente) throw new BadRequestException('Cliente no encontrado');
       if (cliente.sucursal?.idSucursal !== idSucursal) throw new ForbiddenException('No tienes permiso para eliminar este cliente');
     }
-    await this.clienteRepo.delete(id);
+    cliente.activo = false;
+    await this.clienteRepo.save(cliente);
     return { success: true };
   }
 
