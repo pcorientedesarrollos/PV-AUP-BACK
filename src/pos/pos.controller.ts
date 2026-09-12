@@ -421,13 +421,14 @@ export class PosController {
 
   @Public()
   @Get('facturas/:idFacturama/pdf')
-  async descargarFacturaPdf(@Param('idFacturama') idFacturama: string, @Res() res: any) {
+  async descargarFacturaPdf(@Param('idFacturama') idFacturama: string, @Query('inline') inline: string, @Res() res: any) {
     try {
       const data = await this.posService.descargarFacturaArchivo(idFacturama, 'pdf');
       if (data && data.Content) {
         const buffer = Buffer.from(data.Content, 'base64');
         res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', `attachment; filename="${idFacturama}.pdf"`);
+        const disposition = inline === 'true' ? 'inline' : 'attachment';
+        res.setHeader('Content-Disposition', `${disposition}; filename="${idFacturama}.pdf"`);
         res.send(buffer);
       } else {
         res.status(404).send('PDF not found');
