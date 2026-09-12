@@ -795,14 +795,18 @@ export class PosController {
   @Post('inventario/traspasos')
   crearTraspaso(
     @Headers('x-usuario-id') idUsuario: string,
-    @Body() payload: { idSucursalOrigen: number; idSucursalDestino: number; productos: any[]; observaciones: string }
+    @Body() payload: { idSucursalOrigen: number; idSucursalDestino: number; productos: any[]; observaciones: string; tipoTraspaso?: string; montoTotal?: number; metodoPago?: string; idTraspasoRelacionado?: number }
   ) {
     return this.posService.crearTraspaso(
       payload.idSucursalOrigen,
       payload.idSucursalDestino,
       Number(idUsuario),
       payload.productos,
-      payload.observaciones
+      payload.observaciones,
+      payload.tipoTraspaso,
+      payload.montoTotal,
+      payload.metodoPago,
+      payload.idTraspasoRelacionado
     );
   }
 

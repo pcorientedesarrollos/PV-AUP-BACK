@@ -3490,7 +3490,7 @@ export class PosService {
 
   // --- TRASPASOS DE INVENTARIO ---
 
-  async crearTraspaso(idSucursalOrigen: number, idSucursalDestino: number, idUsuario: number, productos: any[], observaciones: string) {
+  async crearTraspaso(idSucursalOrigen: number, idSucursalDestino: number, idUsuario: number, productos: any[], observaciones: string, tipoTraspaso?: string, montoTotal?: number, metodoPago?: string, idTraspasoRelacionado?: number) {
     const parseNumber = (val: any) => {
       if (val === null || val === undefined) return 0;
       const parsed = typeof val === 'string' ? parseFloat(val) : val;
@@ -3521,8 +3521,12 @@ export class PosService {
         sucursalOrigen: sucursalOrigen as any,
         sucursalDestino: sucursalDestino as any,
         usuario: usuario as any,
-        observaciones
-      });
+        observaciones,
+        tipoTraspaso: tipoTraspaso || 'Simple',
+        montoTotal: montoTotal || 0,
+        metodoPago: metodoPago || null,
+        idTraspasoRelacionado: idTraspasoRelacionado || null
+      } as any);
       const savedTraspaso = await queryRunner.manager.save(traspaso);
 
       for (const item of productos) {

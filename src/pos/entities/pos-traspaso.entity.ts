@@ -32,6 +32,22 @@ export class PosTraspaso {
   @Column('text', { nullable: true })
   observaciones: string;
 
+  // --- NUEVOS CAMPOS PARA TRASPASOS AVANZADOS ---
+
+  @Column({ length: 30, default: 'Simple' })
+  tipoTraspaso: string; // 'Simple', 'ConCosto', 'Intercambio'
+
+  @Column('decimal', { precision: 10, scale: 2, default: 0.00 })
+  montoTotal: number;
+
+  @Column({ length: 30, nullable: true })
+  metodoPago: string; // 'Efectivo', 'Transferencia', etc. (Solo si es ConCosto)
+
+  @Column({ nullable: true })
+  idTraspasoRelacionado: number; // Para ligar dos traspasos en un Intercambio
+
+  // ----------------------------------------------
+
   @OneToMany(() => PosTraspasoDetalle, detalle => detalle.traspaso)
   detalles: PosTraspasoDetalle[];
 }
