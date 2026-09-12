@@ -165,7 +165,7 @@ export class PosController {
   }
 
   @Patch('clientes/:id')
-  actualizarCliente(@Param("id") id: string, @Body() payload: ClienteDto, @CurrentUser() user: any) {
+  actualizarCliente(@Param("id") id: string, @Body() payload: any, @CurrentUser() user: any) {
     return this.posService.actualizarCliente(Number(id), payload, user?.idSucursal, user?.rol);
   }
 
